@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>6중대 출타율 관리</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Malgun Gothic', sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: #2c3e50;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            font-weight: bold;
+        }
+
+        .squad-size-section {
+            padding: 20px;
+            background: #ecf0f1;
+            border-bottom: 2px solid #bdc3c7;
+        }
+
+        .squad-size-section label {
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .squad-size-section input {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 80px;
+        }
+
+        .error {
+            color: #e74c3c;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+
+        .main-content {
+            display: flex;
+            min-height: 600px;
+        }
+
+        .left-panel {
+            flex: 1;
+            padding: 20px;
+            border-right: 1px solid #ddd;
+        }
+
+        .center-panel {
+            flex: 1.5;
+            padding: 20px;
+        }
+
+        .right-panel {
+            flex: 1;
+            padding: 20px;
+            background: #f8f9fa;
+        }
+
+        .squad-member {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+
+        .squad-member input[type="text"] {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-right: 10px;
+        }
+
+        .add-leave-btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+
+        .add-leave-btn:hover {
+            background: #2980b9;
+        }
+
+        .summary {
+            font-size: 0.9em;
+            color: #7f8c8d;
+            min-width: 200px;
+        }
+
+        .calendar {
+            margin-bottom: 20px;
+        }
+
+        .calendar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .calendar-header select {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin: 0 5px;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 1px;
+            background: #ddd;
+            border: 1px solid #ddd;
+        }
+
+        .calendar-day-header {
+            background: #34495e;
+            color: white;
+            padding: 10px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .calendar-day {
+            background: white;
+            padding: 8px;
+            min-height: 80px;
+            position: relative;
+            border: 1px solid #eee;
+        }
+
+        .calendar-day.other-month {
+            background: #f8f9fa;
+            color: #bdc3c7;
+        }
+
+        .calendar-day.high-leave-rate {
+            background: #ffebee;
+            border: 2px solid #f44336;
+        }
+
+        .day-number {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .leave-rate {
+            font-size: 0.7em;
+            color: #666;
+            position: absolute;
+            bottom: 2px;
+            right: 4px;
+        }
+
+        .leave-indicator {
+            font-size: 0.6em;
+            padding: 1px 3px;
+            margin: 1px;
+            border-radius: 2px;
+            display: inline-block;
+        }
+
+        .leave-vacation {
+            background: #ffcdd2;
+            color: #d32f2f;
+        }
+
+        .leave-overnight {
+            background: #c8e6c9;
+            color: #388e3c;
+        }
+
+        .leave-outing {
+            background: #fff3e0;
+            color: #f57c00;
+        }
+
+        .leave-form {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            margin-top: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .leave-form select,
+        .leave-form input {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin: 5px;
+        }
+
+        .leave-form button {
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+
+        .leave-form button:hover {
+            background: #219a52;
+        }
+
+        .leave-form .cancel-btn {
+            background: #95a5a6;
+        }
+
+        .leave-form .cancel-btn:hover {
+            background: #7f8c8d;
+        }
+
+        .leave-list {
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .leave-item {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+
+        .leave-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+
+        .leave-item-type {
+            font-weight: bold;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 0.8em;
+        }
+
+        .edit-btn, .delete-btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 3px;
+            cursor: pointer;
+            margin-left: 5px;
+            font-size: 0.8em;
+        }
+
+        .delete-btn {
+            background: #e74c3c;
+        }
+
+        .edit-btn:hover {
+            background: #2980b9;
+        }
+
+        .delete-btn:hover {
+            background: #c0392b;
+        }
+
+        .filter-section {
+            margin-bottom: 20px;
+        }
+
+        .filter-section select {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>6중대 출타율</h1>
+        </div>
+
+        <div class="squad-size-section">
+            <label for="squadSize">중대원 수:</label>
+            <input type="number" id="squadSize" min="1" max="10" value="5">
+            <div id="sizeError" class="error"></div>
+        </div>
+
+        <div class="main-content">
+            <div class="left-panel">
+                <h3>중대원 목록</h3>
+                <div id="squadMembers"></div>
+            </div>
+
+            <div class="center-panel">
+                <div class="calendar">
+                    <div class="calendar-header">
+                        <select id="yearSelect"></select>
+                        <select id="monthSelect"></select>
+                    </div>
+                    <div class="calendar-grid" id="calendarGrid"></div>
+                </div>
+            </div>
+
+            <div class="right-panel">
+                <h3>출타 목록</h3>
+                <div class="filter-section">
+                    <select id="memberFilter">
+                        <option value="">전체 중대원</option>
+                    </select>
+                </div>
+                <div class="leave-list" id="leaveList"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let squadSize = 5;
+        let squadMembers = [];
+        let leaves = [];
+        let currentYear = new Date().getFullYear();
+        let currentMonth = new Date().getMonth();
+
+        // 초기화
+        function init() {
+            setupYearMonth();
+            updateSquadSize();
+            renderCalendar();
+        }
+
+        // 연도/월 선택 설정
+        function setupYearMonth() {
+            const yearSelect = document.getElementById('yearSelect');
+            const monthSelect = document.getElementById('monthSelect');
+            
+            for (let year = currentYear - 2; year <= currentYear + 2; year++) {
+                const option = document.createElement('option');
+                option.value = year;
+                option.textContent = year + '년';
+                if (year === currentYear) option.selected = true;
+                yearSelect.appendChild(option);
+            }
+
+            const months = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'];
+            months.forEach((month, index) => {
+                const option = document.createElement('option');
+                option.value = index;
+                option.textContent = month;
+                if (index === currentMonth) option.selected = true;
+                monthSelect.appendChild(option);
+            });
+
+            yearSelect.addEventListener('change', (e) => {
+                currentYear = parseInt(e.target.value);
+                renderCalendar();
+                renderLeaveList();
+            });
+
+            monthSelect.addEventListener('change', (e) => {
+                currentMonth = parseInt(e.target.value);
+                renderCalendar();
+                renderLeaveList();
+            });
+        }
+
+        // 중대원 수 업데이트
+        function updateSquadSize() {
+            const input = document.getElementById('squadSize');
+            const error = document.getElementById('sizeError');
+            
+            input.addEventListener('input', (e) => {
+                const value = parseInt(e.target.value);
+                if (value < 1 || value > 10) {
+                    error.textContent = '중대원 수는 1-10명 사이여야 합니다.';
+                    return;
+                }
+                error.textContent = '';
+                squadSize = value;
+                generateSquadMembers();
+                updateMemberFilter();
+                renderCalendar();
+            });
+
+            generateSquadMembers();
+        }
+
+        // 중대원 목록 생성
+        function generateSquadMembers() {
+            const container = document.getElementById('squadMembers');
+            container.innerHTML = '';
+            
+            // 기존 중대원 데이터 유지
+            const newMembers = [];
+            for (let i = 0; i < squadSize; i++) {
+                newMembers.push(squadMembers[i] || `중대원 ${i + 1}`);
+            }
+            squadMembers = newMembers;
+
+            squadMembers.forEach((member, index) => {
+                const memberDiv = document.createElement('div');
+                memberDiv.className = 'squad-member';
+                
+                const nameInput = document.createElement('input');
+                nameInput.type = 'text';
+                nameInput.value = member;
+                nameInput.addEventListener('input', (e) => {
+                    squadMembers[index] = e.target.value;
+                    updateMemberFilter();
+                    renderLeaveList();
+                });
+
+                const addBtn = document.createElement('button');
+                addBtn.className = 'add-leave-btn';
+                addBtn.textContent = '출타 추가';
+                addBtn.addEventListener('click', () => showLeaveForm(index));
+
+                const summary = document.createElement('div');
+                summary.className = 'summary';
+                summary.id = `summary-${index}`;
+
+                memberDiv.appendChild(nameInput);
+                memberDiv.appendChild(addBtn);
+                memberDiv.appendChild(summary);
+                container.appendChild(memberDiv);
+
+                updateMemberSummary(index);
+            });
+        }
+
+        // 중대원 요약 업데이트
+        function updateMemberSummary(memberIndex) {
+            const summary = document.getElementById(`summary-${memberIndex}`);
+            const memberLeaves = leaves.filter(l => l.memberIndex === memberIndex);
+            
+            let vacation = 0, overnight = 0, outing = 0;
+            memberLeaves.forEach(leave => {
+                const days = getDaysDifference(leave.startDate, leave.endDate);
+                switch (leave.type) {
+                    case 'vacation': vacation += days; break;
+                    case 'overnight': overnight += days; break;
+                    case 'outing': outing += days; break;
+                }
+            });
+
+            summary.textContent = `휴가: ${vacation}일 | 외박: ${overnight}일 | 외출: ${outing}일`;
+        }
+
+        // 출타 폼 표시
+        function showLeaveForm(memberIndex) {
+            const existingForm = document.querySelector('.leave-form');
+            if (existingForm) existingForm.remove();
+
+            const form = document.createElement('div');
+            form.className = 'leave-form';
+            form.innerHTML = `
+                <div>
+                    <label>출타 유형:</label>
+                    <select id="leaveType">
+                        <option value="vacation">휴가 (최대 15일)</option>
+                        <option value="overnight">외박 (1박 2일)</option>
+                        <option value="outing">외출 (1일)</option>
+                    </select>
+                </div>
+                <div>
+                    <label>출발일:</label>
+                    <input type="date" id="startDate">
+                </div>
+                <div>
+                    <label>복귀일:</label>
+                    <input type="date" id="endDate">
+                </div>
+                <div>
+                    <button onclick="addLeave(${memberIndex})">추가</button>
+                    <button class="cancel-btn" onclick="this.parentElement.parentElement.remove()">취소</button>
+                </div>
+            `;
+
+            document.getElementById('squadMembers').appendChild(form);
+        }
+
+        // 출타 추가
+        function addLeave(memberIndex) {
+            const type = document.getElementById('leaveType').value;
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+
+            if (!startDate || !endDate) {
+                alert('날짜를 모두 입력해주세요.');
+                return;
+            }
+
+            const start = new Date(startDate);
+            const end = new Date(endDate);
+
+            if (start > end) {
+                alert('복귀일이 출발일보다 빠를 수 없습니다.');
+                return;
+            }
+
+            const days = getDaysDifference(startDate, endDate);
+            if (type === 'vacation' && days > 15) {
+                alert('휴가는 최대 15일까지 가능합니다.');
+                return;
+            }
+
+            leaves.push({
+                id: Date.now(),
+                memberIndex,
+                type,
+                startDate,
+                endDate
+            });
+
+            document.querySelector('.leave-form').remove();
+            updateMemberSummary(memberIndex);
+            renderCalendar();
+            renderLeaveList();
+        }
+
+        // 날짜 차이 계산
+function getDaysDifference(startDate, endDate) {
+    const start = new Date(startDate); // 시작일 Date 객체 생성
+    const end = new Date(endDate); // 종료일 Date 객체 생성
+    const diffTime = Math.abs(end - start); // 두 날짜의 시간 차이 계산
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24)); // 일 수로 변환 (포함된 날짜만 계산)
+}
+
+        // 달력 렌더링
+        function renderCalendar() {
+            const grid = document.getElementById('calendarGrid');
+            grid.innerHTML = '';
+
+            const dayHeaders = ['일', '월', '화', '수', '목', '금', '토'];
+            dayHeaders.forEach(day => {
+                const header = document.createElement('div');
+                header.className = 'calendar-day-header';
+                header.textContent = day;
+                grid.appendChild(header);
+            });
+
+            const firstDay = new Date(currentYear, currentMonth, 1);
+            const lastDay = new Date(currentYear, currentMonth + 1, 0);
+            const startDate = new Date(firstDay);
+            startDate.setDate(startDate.getDate() - firstDay.getDay());
+
+            for (let i = 0; i < 42; i++) {
+                const date = new Date(startDate);
+                date.setDate(startDate.getDate() + i);
+                
+                const dayDiv = document.createElement('div');
+                dayDiv.className = 'calendar-day';
+                
+                if (date.getMonth() !== currentMonth) {
+                    dayDiv.classList.add('other-month');
+                }
+
+                const dayNumber = document.createElement('div');
+                dayNumber.className = 'day-number';
+                dayNumber.textContent = date.getDate();
+                dayDiv.appendChild(dayNumber);
+
+                // 출타 표시
+                const dayLeaves = getLeavesByDate(date);
+                dayLeaves.forEach(leave => {
+                    const indicator = document.createElement('div');
+                    indicator.className = `leave-indicator leave-${leave.type}`;
+                    indicator.textContent = squadMembers[leave.memberIndex].substring(0, 2);
+                    dayDiv.appendChild(indicator);
+                });
+
+                // 출타율 계산 및 표시
+                const leaveRate = calculateLeaveRate(date);
+                const rateDiv = document.createElement('div');
+                rateDiv.className = 'leave-rate';
+                rateDiv.textContent = `${leaveRate}%`;
+                dayDiv.appendChild(rateDiv);
+
+                // 높은 출타율 강조
+                const dayOfWeek = date.getDay();
+                const threshold = (dayOfWeek === 0 || dayOfWeek === 6) ? 35 : 20;
+                if (leaveRate > threshold) {
+                    dayDiv.classList.add('high-leave-rate');
+                }
+
+                grid.appendChild(dayDiv);
+            }
+        }
+
+       // 특정 날짜의 출타 가져오기
+function getLeavesByDate(date) {
+    // 로컬 시간 기준으로 YYYY-MM-DD 형식 문자열 생성
+    const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+    return leaves.filter(leave => {
+        return dateStr >= leave.startDate && dateStr <= leave.endDate;
+    });
+}
+
+        // 출타율 계산
+        function calculateLeaveRate(date) {
+            const dayLeaves = getLeavesByDate(date);
+            const uniqueMembers = [...new Set(dayLeaves.map(l => l.memberIndex))];
+            return Math.round((uniqueMembers.length / squadSize) * 100);
+        }
+
+        // 중대원 필터 업데이트
+        function updateMemberFilter() {
+            const filter = document.getElementById('memberFilter');
+            filter.innerHTML = '<option value="">전체 중대원</option>';
+            
+            squadMembers.forEach((member, index) => {
+                const option = document.createElement('option');
+                option.value = index;
+                option.textContent = member;
+                filter.appendChild(option);
+            });
+
+            filter.addEventListener('change', renderLeaveList);
+        }
+
+       // 출타 목록 렌더링
+function renderLeaveList() {
+    const container = document.getElementById('leaveList');
+    const memberFilter = document.getElementById('memberFilter').value;
+    
+    // 현재 월의 첫 날과 마지막 날
+    const firstDay = new Date(currentYear, currentMonth, 1);
+    const lastDay = new Date(currentYear, currentMonth + 1, 0);
+    
+    let filteredLeaves = leaves.filter(leave => {
+        // 출타 기간의 시작일과 종료일을 Date 객체로 변환
+        const leaveStart = new Date(leave.startDate);
+        const leaveEnd = new Date(leave.endDate);
+        
+        // 출타 기간이 현재 월과 겹치는지 확인
+        const isOverlap = leaveStart <= lastDay && leaveEnd >= firstDay;
+        
+        // 멤버 필터링 조건
+        const memberMatch = memberFilter === '' || leave.memberIndex == memberFilter;
+        
+        return isOverlap && memberMatch;
+    });
+
+    container.innerHTML = '';
+
+    if (filteredLeaves.length === 0) {
+        container.innerHTML = '<p>해당 월에 출타가 없습니다.</p>';
+        return;
+    }
+
+    filteredLeaves.forEach(leave => {
+        const item = document.createElement('div');
+        item.className = 'leave-item';
+
+        const typeClass = `leave-${leave.type}`;
+        const typeName = leave.type === 'vacation' ? '휴가' : 
+                         leave.type === 'overnight' ? '외박' : '외출';
+
+        item.innerHTML = `
+            <div class="leave-item-header">
+                <span class="leave-item-type ${typeClass}">${typeName}</span>
+                <div>
+                    <button class="edit-btn" onclick="editLeave(${leave.id})">수정</button>
+                    <button class="delete-btn" onclick="deleteLeave(${leave.id})">삭제</button>
+                </div>
+            </div>
+            <div>
+                <strong>${squadMembers[leave.memberIndex]}</strong><br>
+                ${leave.startDate} ~ ${leave.endDate}
+            </div>
+        `;
+
+        container.appendChild(item);
+    });
+}	
+        // 출타 수정
+        function editLeave(leaveId) {
+            const leave = leaves.find(l => l.id === leaveId);
+            if (!leave) return;
+
+            const newStartDate = prompt('새로운 출발일 (YYYY-MM-DD):', leave.startDate);
+            const newEndDate = prompt('새로운 복귀일 (YYYY-MM-DD):', leave.endDate);
+
+            if (newStartDate && newEndDate) {
+                const start = new Date(newStartDate);
+                const end = new Date(newEndDate);
+
+                if (start > end) {
+                    alert('복귀일이 출발일보다 빠를 수 없습니다.');
+                    return;
+                }
+
+                const days = getDaysDifference(newStartDate, newEndDate);
+                if (leave.type === 'vacation' && days > 15) {
+                    alert('휴가는 최대 15일까지 가능합니다.');
+                    return;
+                }
+
+                leave.startDate = newStartDate;
+                leave.endDate = newEndDate;
+                
+                updateMemberSummary(leave.memberIndex);
+                renderCalendar();
+                renderLeaveList();
+            }
+        }
+
+        // 출타 삭제
+        function deleteLeave(leaveId) {
+            if (confirm('정말로 이 출타를 삭제하시겠습니까?')) {
+                const leave = leaves.find(l => l.id === leaveId);
+                leaves = leaves.filter(l => l.id !== leaveId);
+                
+                if (leave) {
+                    updateMemberSummary(leave.memberIndex);
+                }
+                
+                renderCalendar();
+                renderLeaveList();
+            }
+        }
+
+        // 초기화 실행
+        init();
+    </script>
+</body>
+</html>
